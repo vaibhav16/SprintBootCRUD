@@ -2,10 +2,12 @@ package com.example.taskmanager_springboot_crud2.controllers;
 
 import com.example.taskmanager_springboot_crud2.dto.CreateTaskDTO;
 import com.example.taskmanager_springboot_crud2.dto.ErrorResponseDTO;
+import com.example.taskmanager_springboot_crud2.dto.TaskResponseDTO;
 import com.example.taskmanager_springboot_crud2.dto.UpdateTaskDTO;
 import com.example.taskmanager_springboot_crud2.entities.TaskEntity;
 import com.example.taskmanager_springboot_crud2.service.NotesService;
 import com.example.taskmanager_springboot_crud2.service.TaskService;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +20,7 @@ import java.util.List;
 public class TasksController {
     private final TaskService taskService;
     private final NotesService notesService;
+    private ModelMapper modelMapper = new ModelMapper();
 
     public TasksController(TaskService taskService, NotesService notesService) {
         this.taskService = taskService;
@@ -34,16 +37,17 @@ public class TasksController {
     }
 
     @GetMapping("/{id}")
-    public  ResponseEntity<TaskEntity> getTaskById(@PathVariable ("id") Integer id){
+    public  ResponseEntity<TaskResponseDTO> getTaskById(@PathVariable ("id") Integer id){
         var task = taskService.getTasksById(id);
         var notes = notesService.getNotesForTask(id);
         if(task == null){
             return ResponseEntity.notFound().build();
         }
 
-        task.setNotes(notes);
+        var taskResponse = modelMapper.map(task, TaskResponseDTO.class);
+        taskResponse.setNotes(notes);
 
-        return ResponseEntity.ok(task);
+        return ResponseEntity.ok(taskResponse);
     }
     @PostMapping("")
     public ResponseEntity<TaskEntity> addTask(@RequestBody CreateTaskDTO body) throws ParseException {
